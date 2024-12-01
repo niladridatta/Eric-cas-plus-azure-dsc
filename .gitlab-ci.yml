@@ -1,0 +1,186 @@
+---
+# Importing necessary jobs from cas-plus-gitlab-ci-library, form master branch
+include:
+  - project: "san-tools-technology-platform/cas/infra/cas-plus/cas-plus-gitlab-ci-library"
+    ref: "master"
+    file:
+      - "jobs/general/createReleaseScript.yml"
+      - "jobs/general/installMarkdownlint.yml"
+      - "jobs/general/multiHomedDockerImage.yml"
+      - "jobs/general/pushPackage.yml"
+      - "jobs/general/setVersion.yml"
+      - "jobs/general/setVersionPS.yml"
+      - "jobs/general/setPackageName.yml"
+      - "jobs/general/setPackageNamePS.yml"
+      - "jobs/general/updatePackageVersion.yml"
+
+
+# Define necessary variables for the pipeline
+variables:
+  DOCKER_DRIVER: overlay2 # Basic setting for Kubernetes runner
+  DOCKER_TLS_CERTDIR: "" # Basic setting for Kubernetes runner
+  DOCKER_HOST: tcp://docker:2375 # Basic setting for Kubernetes runner
+  ARM_URL: armdocker.rnd.ericsson.se # Base Url for docker repository contains runner image
+  ARM_REPO: proj-cas-plus # Repo Url for Runner image
+  ARM_GEN_URL: https://arm.seli.gic.ericsson.se/artifactory/proj-cas-plus-generic-local # zip package destination
+  CI_REGISTRY_IMAGE: $ARM_URL/$ARM_REPO/ps-azure-cas-plus:28 # Runner Image name and version
+  CONFIGURATION_PATH: "$CI_PROJECT_DIR/Configuration" # path to Configutaions to syntax check
+  CAS_PLUS_GITLAB_URL: "gitlab.internal.ericsson.com/san-tools-technology-platform/cas/infra/cas-plus"
+
+cache:
+  policy: pull
+
+# Define stages in pipeline
+stages:
+  - test
+  - pack
+  - push
+  - release
+  - updatepackagefile
+
+image:
+  name: $CI_REGISTRY_IMAGE # helper image for runner
+
+ScriptFileInfoCheck:
+  stage: test
+  script:
+    - $Env:PSModulePath = $Env:PSModulePath+";$(Get-Location)"
+    - Get-ChildItem -Path ./*.ps1, ./Configuration/*.ps1 | Test-ScriptFileInfo
+  tags:
+    - cas-plus,azure,windows
+
+SyntaxCheck: # Syntax checking Configuration.ps1 with PSScriptAnalyzer
+  variables:
+    CHECKPATH: "./Configuration/Configuration.ps1"
+    EXCLUDERULE: "PSReviewUnusedParameter"
+  stage: test
+  script:
+    - $command = '$Env:PSModulePath = $Env:PSModulePath+'
+    - $command = $command + "';" + "$CONFIGURATION_PATH" + "'"
+    - $command = $command + '; Install-Module PSScriptAnalyzer -MinimumVersion 1.20.0 -scope CurrentUser -Force'
+    - $command = $command + "; Invoke-ScriptAnalyzer -Path $CHECKPATH -ExcludeRule $EXCLUDERULE -EnableExit"
+    - powershell -c "$command"
+  tags:
+    - cas-plus,azure,windows
+
+PesterTest: # Checking if modules exists with Pester
+  variables:
+    PESTERTESTPATH: "./Configuration/Configuration.Tests.ps1"
+  stage: test
+  script:
+    - echo Starting Configuration.ps1 Pester test...
+    - $command = 'Install-Module Pester -RequiredVersion 5.3.0 -SkipPublisherCheck -scope CurrentUser -Force'
+    - $command = $command + "; Import-Module Pester"
+    - $command = $command + "; Invoke-Pester -Path $PESTERTESTPATH -CI"
+    - powershell -c "$command"
+  tags:
+    - cas-plus,azure,windows
+
+MarkdownSyntaxCheck:
+  stage: test
+  extends:
+    - .install-Markdown-lint
+  script:
+    - markdownlint-cli2 "**/*.md"
+  tags:
+    - cas-plus,infra
+
+UpdatePackageFile:
+  stage: pack
+  rules:
+    - if: $CI_COMMIT_BRANCH == "develop"
+  before_script:
+    - !reference [.setVersion, script]
+  script:
+    - git clone "https://$TOKEN_NAME:$TOKEN_SECRET@$CAS_PLUS_GITLAB_URL/$GITOPS_TEST.git" $GITOPS_TEST
+    - cd cas-plus-gitops-test
+    - "OLD_PACKAGE_VERSION=$(cat PACKAGE.yaml | grep -i dsc-version | awk -F ': ' '{print $2}')"
+    - echo $OLD_PACKAGE_VERSION
+    - find PACKAGE.yaml -exec sed -i "s/$OLD_PACKAGE_VERSION/$PACKAGE_VERSION/g" '{}' +
+    - git config --global user.email ""
+    - git config --global user.name "CICD Automation"
+    - git add -A
+    - git commit -m "Updated Package file"
+    - git push -o ci.skip "https://$TOKEN_NAME:$TOKEN_SECRET@$CAS_PLUS_GITLAB_URL/$GITOPS_TEST.git"
+  tags:
+    - cas-plus,infra
+  retry: 2
+
+# Commented out the old version while the new PS based version is being validated.
+.CreatePackage:
+  stage: pack
+  before_script:
+    - !reference [.setVersion, script]
+    - !reference [.setPackageName, script]
+  script:
+    - cp PACKAGE.yaml ./Configuration/PACKAGE.yaml
+    # Insert version header to ps files
+    - |
+      sed -i "s/^version:.*$/version: $PACKAGE_VERSION/g" ./Configuration/PACKAGE.yaml
+    - header='<\#PSScriptInfo\n .VERSION '"${PACKAGE_VERSION}"'\n (Automatic) Managed by CI taking the version from PACKAGE.yaml\n\#>\n\n'
+    - find . -type f -name "*.ps1" -exec sed -i "1s|^|$header|" '{}' \;
+    - cd Configuration
+    - zip -r "../$PACKAGE_NAME-$PACKAGE_VERSION.zip" ./*
+  artifacts:
+    name: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - ./*.zip
+  tags:
+    - cas-plus,infra
+  retry: 2
+
+CreatePackage:
+  stage: pack
+  before_script:
+    - !reference [.setVersionPS, script]
+    - !reference [.setPackageNamePS, script]
+  script:
+    - $Env:PSModulePath = $Env:PSModulePath+";$(Get-Location)"
+    - $semVersion = [version]::Parse($SEMANTIC_VERSION)
+    - $contentVersionString = "{0}.{1}.{2}.{3}" -f $semVersion.Major, $semVersion.Minor, $semVersion.Build, $CI_PIPELINE_IID
+    - $CONTENT_VERSION = [version]::Parse($contentVersionString)
+    - Copy-Item -Path PACKAGE.yaml -Destination ./Configuration
+    - Get-ChildItem -Path .\*.ps1, .\Configuration\*.ps1 | ForEach-Object { Update-ScriptFileInfo -Path $_ -Version $CONTENT_VERSION.ToString() -Force }
+    - Compress-Archive -Path ./Configuration/* -DestinationPath ./$PACKAGE_NAME-$PACKAGE_VERSION.zip
+  artifacts:
+    name: "$CI_COMMIT_REF_SLUG"
+    paths:
+      - ./*.zip
+  tags:
+    - cas-plus,azure,windows
+  retry: 2
+
+PushPackage: # Pushing package to repository
+  stage: push
+  before_script:
+    - !reference [.setVersion, script]
+    - !reference [.setPackageName, script]
+  script:
+    - !reference [.pushPackage, script]
+  tags:
+    - cas-plus,infra
+  retry: 2
+
+CreateRelease: # Creating release in GitLab
+  before_script:
+    - !reference [.setVersion, script]
+    - !reference [.setPackageName, script]
+  extends: .createRelease
+  stage: release
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "main"
+  dependencies:
+    - PushPackage
+  tags:
+    - cas-plus,infra
+  retry: 2
+
+# Update latest package version in PACKAGE.yml in gitops repositorys
+UpdatePackageFileTEST:
+  extends: .UpdatePackageFileTEST
+
+UpdatePackageFileITE:
+  extends: .UpdatePackageFileITE
+
+UpdatePackageFilePPD2:
+  extends: .UpdatePackageFilePPD2

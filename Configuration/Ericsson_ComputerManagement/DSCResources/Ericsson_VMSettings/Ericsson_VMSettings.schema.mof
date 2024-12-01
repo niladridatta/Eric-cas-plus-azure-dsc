@@ -1,0 +1,7 @@
+[ClassVersion("1.0.0"), FriendlyName("VMSettings")]
+class Ericsson_VMSettings : OMI_BaseResource
+{
+  [Key] string VMName;
+  [Required] string AutomaticStartAction;
+  [Required] string AutomaticStopAction;
+};

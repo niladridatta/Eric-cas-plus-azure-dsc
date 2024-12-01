@@ -1,0 +1,8 @@
+{
+    "config": {
+        "line-length": false
+    },
+    "ignores": [
+        "./Configuration/**/*.md"
+    ]
+}

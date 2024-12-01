@@ -1,0 +1,7 @@
+[ClassVersion("1.0.0"), FriendlyName("VMLogRelay")]
+class Ericsson_VMLogRelay : OMI_BaseResource
+{
+  [Key] string VMName;
+  [Required,EmbeddedInstance("MSFT_Credential")] string LocalAdminCredential;
+  [Required] string WEFServer;
+};

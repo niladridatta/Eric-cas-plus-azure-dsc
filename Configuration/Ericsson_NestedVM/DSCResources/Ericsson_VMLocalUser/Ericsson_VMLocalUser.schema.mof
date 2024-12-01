@@ -1,0 +1,9 @@
+[ClassVersion("1.0.0"), FriendlyName("VMLocalUser")]
+class Ericsson_VMLocalUser : OMI_BaseResource
+{
+  [Key] string VMName;
+  [Required,EmbeddedInstance("MSFT_Credential")] string LocalAdminCredential;
+  [Key] string Name;
+  [Required] boolean Enabled;
+  [write] boolean PasswordNeverExpires;
+};

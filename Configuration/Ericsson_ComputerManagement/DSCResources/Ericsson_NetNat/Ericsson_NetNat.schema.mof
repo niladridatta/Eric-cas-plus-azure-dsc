@@ -1,0 +1,6 @@
+[ClassVersion("1.0.0"), FriendlyName("NetNat")]
+class Ericsson_NetNat : OMI_BaseResource
+{
+  [Key] string NetNatName;
+  [Required] string InternalIPInterfaceAddressPrefix;
+};

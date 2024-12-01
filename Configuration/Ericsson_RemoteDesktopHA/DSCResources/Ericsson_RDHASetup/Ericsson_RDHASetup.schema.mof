@@ -1,0 +1,13 @@
+
+[ClassVersion("1.0.0.0"), FriendlyName("RDHASetup")]
+class Ericsson_RDHASetup : OMI_BaseResource
+{
+    [Key] String ConnectionBroker;
+    [Write] String ClientAccessName;
+    [Write] String sqlServer;
+    [Write] String sqlDatabase;
+    [Write] String sqlAdmin;
+    [Write] String sqlPassword;
+    [Write] String connectionBrokerClusterDNS;
+};
+

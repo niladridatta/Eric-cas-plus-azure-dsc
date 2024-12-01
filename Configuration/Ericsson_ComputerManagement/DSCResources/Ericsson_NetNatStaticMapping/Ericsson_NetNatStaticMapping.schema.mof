@@ -1,0 +1,10 @@
+[ClassVersion("1.0.0"), FriendlyName("NetNatStaticMapping")]
+class Ericsson_NetNatStaticMapping : OMI_BaseResource
+{
+  [Key] string NetNatName;
+  [Key] string ExternalIPAddress;
+  [Key] sint32 ExternalPort;
+  [Required,ValueMap{"TCP", "UDP"},Values{"TCP", "UDP"}] string Protocol;
+  [Required] string InternalIPAddress;
+  [Required] sint32 InternalPort;
+};

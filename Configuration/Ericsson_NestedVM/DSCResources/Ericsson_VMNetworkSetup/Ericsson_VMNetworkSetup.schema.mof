@@ -1,0 +1,11 @@
+[ClassVersion("1.0.0"), FriendlyName("VMNetworkSetup")]
+class Ericsson_VMNetworkSetup : OMI_BaseResource
+{
+  [Key] string VMName;
+  [Required] string IP;
+  [Required] sint8 SubnetMask;
+  [Required] string DefaultGateway;
+  [Required] string DomainDNSName;
+  [Required] string DNSServers[];
+  [Required,EmbeddedInstance("MSFT_Credential")] string LocalAdminCredential;
+};

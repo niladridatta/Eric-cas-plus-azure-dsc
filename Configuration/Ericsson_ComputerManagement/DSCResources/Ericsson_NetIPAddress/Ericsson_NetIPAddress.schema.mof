@@ -1,0 +1,7 @@
+[ClassVersion("1.0.0"), FriendlyName("NetIPAddress")]
+class Ericsson_NetIPAddress : OMI_BaseResource
+{
+  [Key] string IpAddress;
+  [Required] sint32 PrefixLength;
+  [Required] string InterfaceAlias;
+};

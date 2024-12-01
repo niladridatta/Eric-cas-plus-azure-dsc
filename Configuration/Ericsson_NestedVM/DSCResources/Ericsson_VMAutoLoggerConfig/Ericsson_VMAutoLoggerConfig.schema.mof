@@ -1,0 +1,7 @@
+[ClassVersion("1.0.0"), FriendlyName("VMAutoLoggerConfig")]
+class Ericsson_VMAutoLoggerConfig : OMI_BaseResource
+{
+  [Key] string VMName;
+  [Required,EmbeddedInstance("MSFT_Credential")] string LocalAdminCredential;
+  [Key] string LoggerName;
+};

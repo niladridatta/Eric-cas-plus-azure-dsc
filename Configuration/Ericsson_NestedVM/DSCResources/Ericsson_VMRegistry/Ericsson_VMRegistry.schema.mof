@@ -1,0 +1,11 @@
+[ClassVersion("1.0.0"), FriendlyName("VMRegistry")]
+class Ericsson_VMRegistry : OMI_BaseResource
+{
+  [Key] string VMName;
+  [Required,EmbeddedInstance("MSFT_Credential")] string LocalAdminCredential;
+  [Key] string Key;
+  [Key] string PropertyName;
+  [Write, ValueMap{"DWord","QWord","String","MultiString","ExpandString","Binary"}, Values{"DWord","QWord","String","MultiString","ExpandString","Binary"}] string PropertyType;
+  [Write] string PropertyValue[];
+  
+};

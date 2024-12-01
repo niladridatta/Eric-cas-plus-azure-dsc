@@ -1,0 +1,18 @@
+# CODEOWNERS file to define individuals or teams that are
+# responsible for code in a repository.
+
+# Each line is a file pattern followed by one or more owners
+# These owners will be the default owners for everything in
+# the repo. Unless a later match takes precedence.
+
+# Order is important; the last matching pattern takes the most
+# precedence.
+
+# Please refer to the documentation for more information 
+# at repository: cas-plus-azure/doc/development/repository_configuration.md
+
+* @eanlaan @ejtomez @zkakist @ezmenjo @znaglaj @zteldav 
+*.md @eanlaan @ejtomez @lmcgila @zhorimr @zkakist @ezmenjo @znaglaj @zdulkir @zteldav @znaglaj @zpetmra @zkerkop @zteldav @zsammen @zbekgab 
+*.yaml @eanlaan @ejtomez @zkakist @ezmenjo @znaglaj @zteldav @zkerkop 
+*.yml @eanlaan @ejtomez @zkakist @ezmenjo @znaglaj @zteldav @zkerkop 
+

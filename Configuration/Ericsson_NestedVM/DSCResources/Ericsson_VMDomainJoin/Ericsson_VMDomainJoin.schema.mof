@@ -1,0 +1,9 @@
+[ClassVersion("1.0.0"), FriendlyName("VMDomainJoin")]
+class Ericsson_VMDomainJoin : OMI_BaseResource
+{
+  [Key] string VMName;
+  [Required,EmbeddedInstance("MSFT_Credential")] string LocalAdminCredential;
+  [Required] string DomainDNSName;
+  [Required] string DomainOU;
+  [Required,EmbeddedInstance("MSFT_Credential")] string DomainJoinCredential;
+};

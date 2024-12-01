@@ -1,0 +1,11 @@
+[ClassVersion("1.0.0"), FriendlyName("VMInvokeScheduledTask")]
+class Ericsson_VMInvokeScheduledTask : OMI_BaseResource
+{
+  [Key] string VMName;
+  [Required,EmbeddedInstance("MSFT_Credential")] string LocalAdminCredential;
+  [Key] string TaskName;
+  [Key] string TaskPath;
+  [write] boolean Wait;
+  [write] sint32 TimeoutSeconds;
+  [write] boolean SkipIfDisabled;
+};

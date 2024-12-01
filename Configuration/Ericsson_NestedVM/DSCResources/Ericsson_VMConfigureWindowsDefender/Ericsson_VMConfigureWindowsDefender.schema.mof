@@ -1,0 +1,6 @@
+[ClassVersion("1.0.0"), FriendlyName("VMConfigureWindowsDefender")]
+class Ericsson_VMConfigureWindowsDefender : OMI_BaseResource
+{
+  [Key] string VMName;
+  [Required,EmbeddedInstance("MSFT_Credential")] string LocalAdminCredential;
+};

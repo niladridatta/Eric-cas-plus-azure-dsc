@@ -1,0 +1,9 @@
+
+[ClassVersion("1.0.0.0"), FriendlyName("RDVirtualizationDeployment")]
+class Ericsson_RDVirtualizationDeployment : OMI_BaseResource
+{
+    [Key] String ConnectionBroker;
+    [Write] String WebAccessServer;
+    [Write] String VirtualizationHosts[];
+};
+

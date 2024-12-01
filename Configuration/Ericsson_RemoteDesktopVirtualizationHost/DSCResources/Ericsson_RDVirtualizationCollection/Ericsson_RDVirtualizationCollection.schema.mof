@@ -1,0 +1,12 @@
+
+[ClassVersion("1.0.0.0"), FriendlyName("RDVirtualizationCollection")]
+class Ericsson_RDVirtualizationCollection : OMI_BaseResource
+{
+    [Write] String ConnectionBroker;
+    [Key] String CollectionName;
+    [Write] String Description;
+    [Write] String VirtualizationHosts[];
+    [Write] String DomainName;
+    [Write] String UserGroups;
+};
+

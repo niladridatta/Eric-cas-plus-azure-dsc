@@ -1,0 +1,9 @@
+[ClassVersion("1.0.0"), FriendlyName("VMWaitForWinRM")]
+class Ericsson_VMWaitForWinRM : OMI_BaseResource
+{
+  [Key] string Name;
+  [Required] string VMName;
+  [write] uint32 SuccessfulConnectionCount;
+  [write] uint32 TimeoutSeconds;
+  [Required,EmbeddedInstance("MSFT_Credential")] string LocalAdminCredential;
+};

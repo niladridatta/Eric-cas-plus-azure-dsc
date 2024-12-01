@@ -1,0 +1,6 @@
+[ClassVersion("1.0.0"), FriendlyName("InvokeScheduledTask")]
+class Ericsson_InvokeScheduledTask : OMI_BaseResource
+{
+  [Key] string TaskName;
+  [Key] string TaskPath;
+};

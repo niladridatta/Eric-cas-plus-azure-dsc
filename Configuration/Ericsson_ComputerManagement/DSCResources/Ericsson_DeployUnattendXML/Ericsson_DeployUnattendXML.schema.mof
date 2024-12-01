@@ -1,0 +1,9 @@
+[ClassVersion("1.0.0"), FriendlyName("DeployUnattendXML")]
+class Ericsson_DeployUnattendXML : OMI_BaseResource
+{
+  [Key] string VMName;
+  [Required] string UnattendDestinationPath;
+  [Required] string VHDPath;
+  [Required] string NestedComputerName;
+  [Required,EmbeddedInstance("MSFT_Credential")] string LocalAdminCredential;
+};
